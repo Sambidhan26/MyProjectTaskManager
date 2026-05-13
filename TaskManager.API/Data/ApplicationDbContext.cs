@@ -39,6 +39,20 @@ namespace TaskManager.API.Data
                 .WithMany(u => u.Comments)
                 .HasForeignKey(u => u.TaskItemId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Seed Categories
+            modelBuilder.Entity<Category>().HasData(
+                new Category { Id = 1, Name = "Work" },
+                new Category { Id = 2, Name = "Study" },
+                new Category { Id = 3, Name = "Personal" }
+            );
+
+            // Seed Priorities
+            modelBuilder.Entity<Priority>().HasData(
+                new Priority { Id = 1, Level = "Low" },
+                new Priority { Id = 2, Level = "Medium" },
+                new Priority { Id = 3, Level = "High" }
+                );
         }
     }
 }

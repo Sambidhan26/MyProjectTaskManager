@@ -11,8 +11,8 @@
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 
-        public int PriorityId { get; set; }
-        public Priority Priority { get; set; }
+        public int? PriorityId { get; set; }
+        public Priority? Priority { get; set; }
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }
