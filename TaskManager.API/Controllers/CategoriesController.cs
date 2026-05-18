@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.API.Data;
+using TaskManager.API.DTOs;
 using TaskManager.API.Models;
 
 namespace TaskManager.API.Controllers
@@ -11,10 +12,15 @@ namespace TaskManager.API.Controllers
     public class CategoriesController(ApplicationDbContext _content) : Controller
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetAllCategories()
+        public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetAllCategories()
         {
             var categories = await _content.Categories
                 .Include(u => u.TaskItems)
+                .Select(u => new CategoryResponseDto
+                {
+                    Id = u.Id,
+                    Name = u.Name
+                })
                 .ToListAsync();
             return Ok(categories);
         }
@@ -32,15 +38,26 @@ namespace TaskManager.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Category>> CreateCategory([FromBody] Category category)
+        public async Task<ActionResult<CategoryResponseDto>> CreateCategory([FromBody] CreateCategoryDto dto)
         {
+            var category = new Category
+            {
+                Name = dto.Name
+            };
+
             _content.Categories.Add(category);
             await _content.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, category);
+
+            var response = new CategoryResponseDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
+            return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, response);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<Category>> UpdateCategory(int id, [FromBody] Category updatedCategory)
+        public async Task<ActionResult<CategoryResponseDto>> UpdateCategory(int id, [FromBody] UpadateCategoryDto dto)
         {
             var existingCategory = await _content.Categories
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -50,11 +67,16 @@ namespace TaskManager.API.Controllers
                 return NotFound();
             }
 
-            existingCategory.Name = updatedCategory.Name;
-
+            existingCategory.Name = dto.Name ?? existingCategory.Name;
             await _content.SaveChangesAsync();
 
-            return Ok(existingCategory);
+            var response = new CategoryResponseDto
+            {
+                Id = existingCategory.Id,
+                Name = existingCategory.Name
+            };
+
+            return Ok(response);
         }
 
         [HttpDelete("{id:int}")]
