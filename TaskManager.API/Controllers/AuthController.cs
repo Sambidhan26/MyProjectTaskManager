@@ -8,7 +8,7 @@ namespace TaskManager.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController(UserManager<IdentityUser> _userManager
-        , SignInManager<IdentityUser> _signInManager, JwtService _jwtService
+        , SignInManager<IdentityUser> _signInManager,RoleManager<IdentityRole> _roleManager, JwtService _jwtService
         ) : ControllerBase
     {
 
@@ -31,6 +31,15 @@ namespace TaskManager.API.Controllers
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
+            }
+
+            if(!await _roleManager.RoleExistsAsync("User"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("User"));
+            }
+            else
+            {
+                await _userManager.AddToRoleAsync(user, "User");
             }
 
             return Ok();
@@ -58,7 +67,28 @@ namespace TaskManager.API.Controllers
 
             return Ok(new { message = $"Login Successful: {token}"});
         }
-        
+
+        [HttpPost("make-admin/{email}")]
+        public async Task<IActionResult> MakeAdmin(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Create Admin role if it doesn't exist
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            await _userManager.AddToRoleAsync(user, "Admin");
+
+            return Ok("User is now an Admin");
+        }
+
 
     }
 

@@ -1,4 +1,6 @@
-﻿namespace TaskManager.API.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace TaskManager.API.Models
 {
     public class TaskItem:BaseModel
     {
@@ -13,6 +15,9 @@
 
         public int? PriorityId { get; set; }
         public Priority? Priority { get; set; }
+
+        public string? UserId { get; set; }
+        public IdentityUser? User { get; set; }
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

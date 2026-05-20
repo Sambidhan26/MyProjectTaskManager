@@ -6,7 +6,7 @@ using System.Text;
 
 namespace TaskManager.API.Services.Jwt
 {
-    public class JwtService(IConfiguration _config)
+    public class JwtService(IConfiguration _config, UserManager<IdentityUser> _userManager)
     {
         public string GenerateToken(IdentityUser user)
         {
@@ -16,12 +16,20 @@ namespace TaskManager.API.Services.Jwt
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-                new Claim(JwtRegisteredClaimNames.Name, user.UserName!)
+                new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
+
+            var roles = _userManager.GetRolesAsync(user).Result;
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],

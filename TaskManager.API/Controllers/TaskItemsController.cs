@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
+using System.Security.Claims;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
@@ -18,10 +20,10 @@ namespace TaskManager.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItemReponseDto>>> GetAllTaskItems()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var taskItems = await _context.TaskItems
-                .Include(u => u.Category)
-                .Include(u => u.Priority)
-                .Include(u => u.Comments)
+                .Where(t => t.UserId == userId)
                 .Select(u => new TaskItemReponseDto
                 {
                     Id = u.Id,
@@ -43,16 +45,29 @@ namespace TaskManager.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TaskItem>> GetTaskItemById(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var taskItem = await _context.TaskItems
-                .Include(t => t.Category)
-                .Include(t => t.Priority)
-                .Include(t => t.Comments)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (taskItem == null)
                 return NotFound();
 
-            return Ok(taskItem);
+            var response = new TaskItemReponseDto
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                IsCompleted = taskItem.IsCompleted,
+                CreatedAt = taskItem.CreatedAt,
+                DueDate = taskItem.DueDate,
+                CategoryId = taskItem.CategoryId,
+                //CategoryName = taskItem.Category != null ? taskItem.Category.Name : null,
+                PriorityId = taskItem.PriorityId,
+                //PriorityName = taskItem.Priority != null ? taskItem.Priority.Level : null,
+            };
+
+            return Ok(response);
         }
 
 
@@ -70,6 +85,7 @@ namespace TaskManager.API.Controllers
         [HttpPost]
         public async Task<ActionResult<TaskItem>> CreateTaskItem([FromBody] CreateTaskItemDto dto)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (dto == null)
                 return BadRequest("Invalid body");
 
@@ -81,7 +97,8 @@ namespace TaskManager.API.Controllers
                 DueDate = dto.DueDate,
                 CategoryId = dto.CategoryId,
                 PriorityId = dto.PriorityId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UserId = userId!
             };
 
             _context.TaskItems.Add(taskItem);
@@ -109,8 +126,10 @@ namespace TaskManager.API.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult<TaskItem>> UpdateTaskItem(int id, [FromBody] UpdateTaskItemDto dto)
         {
+            var useId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var existingTaskItem = await _context.TaskItems
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == useId);
 
             if (existingTaskItem == null)
             {
