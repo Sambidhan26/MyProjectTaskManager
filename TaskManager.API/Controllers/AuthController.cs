@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.API.DTOs.Auth;
+using TaskManager.API.Services.Jwt;
 
 namespace TaskManager.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController(UserManager<IdentityUser> _userManager
-        , SignInManager<IdentityUser> _signInManager
+        , SignInManager<IdentityUser> _signInManager, JwtService _jwtService
         ) : ControllerBase
     {
 
@@ -26,7 +27,7 @@ namespace TaskManager.API.Controllers
                 Email = dto.Email
             };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password!);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
@@ -53,7 +54,9 @@ namespace TaskManager.API.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            return Ok(new { message = "Login Successful"});
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new { message = $"Login Successful: {token}"});
         }
         
 
