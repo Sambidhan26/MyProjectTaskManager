@@ -62,9 +62,9 @@ namespace TaskManager.API.Controllers
                 CreatedAt = taskItem.CreatedAt,
                 DueDate = taskItem.DueDate,
                 CategoryId = taskItem.CategoryId,
-                //CategoryName = taskItem.Category != null ? taskItem.Category.Name : null,
+                CategoryName = taskItem.Category != null ? taskItem.Category.Name : null,
                 PriorityId = taskItem.PriorityId,
-                //PriorityName = taskItem.Priority != null ? taskItem.Priority.Level : null,
+                PriorityName = taskItem.Priority != null ? taskItem.Priority.Level : null,
             };
 
             return Ok(response);

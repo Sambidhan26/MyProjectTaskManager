@@ -12,6 +12,39 @@ namespace TaskManager.API.Controllers
         ) : ControllerBase
     {
 
+        [HttpPost("create-role/{roleName}")]
+        public async Task<IActionResult> CreateRole(string roleName)
+        {
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+
+            return Ok($"{roleName} role created");
+        }
+
+        [HttpPost("assign-admin/{email}")]
+        public async Task<IActionResult> AssignAdmin(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            // ensure role exists
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, "Admin");
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok("Admin role assigned");
+        }
+
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult> Register([FromBody] RegisterDto dto)
