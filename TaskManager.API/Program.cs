@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
 using TaskManager.API.Data;
+using TaskManager.API.Services.Implementation;
+using TaskManager.API.Services.Interfaces;
 using TaskManager.API.Services.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler =
            ReferenceHandler.IgnoreCycles;
     });
+
+builder.Services.AddScoped<ITaskItemsService, TaskItemService>();
 
 builder.Services.AddScoped<JwtService>();
 
