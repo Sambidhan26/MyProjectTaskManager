@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
@@ -7,36 +8,17 @@ using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Services.Implementation
 {
-    public class TaskItemService(ApplicationDbContext _context) : ITaskItemsService
+    public class TaskItemService(ApplicationDbContext _context, IMapper _mapper) : ITaskItemsService
     {
         public async Task<TaskItemReponseDto> CreateTaskAsync(CreateTaskItemDto dto, string userId)
         {
-            var existingTask = new TaskItem
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                IsCompleted = dto.IsCompleted,
-                CreatedAt = DateTime.UtcNow,
-                DueDate = dto.DueDate,
-                CategoryId = dto.CategoryId,
-                PriorityId = dto.PriorityId,
-                UserId = userId
-            };
+            var existingTask = _mapper.Map<TaskItem>(dto);
 
             _context.TaskItems.Add(existingTask);
 
             await _context.SaveChangesAsync();
 
-            return new TaskItemReponseDto
-            {
-                Id = existingTask.Id,
-                Title = existingTask.Title,
-                Description = existingTask.Description,
-                IsCompleted = existingTask.IsCompleted,
-                DueDate = existingTask.DueDate,
-                CategoryId = existingTask.CategoryId,
-                PriorityId = existingTask.PriorityId
-            };
+            return _mapper.Map<TaskItemReponseDto>(existingTask);
 
 
 
@@ -61,16 +43,7 @@ namespace TaskManager.API.Services.Implementation
                 .Where(t => t.UserId == userId)
                 .ToListAsync();
 
-            return existingTask.Select(t => new TaskItemReponseDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
-                IsCompleted = t.IsCompleted,
-                DueDate = t.DueDate,
-                CategoryId = t.CategoryId,
-                PriorityId = t.PriorityId
-            });
+            return _mapper.Map<IEnumerable<TaskItemReponseDto>>(existingTask);
         }
 
         public async Task<TaskItemReponseDto> GetTaskByIdAsync(int id, string userId)
@@ -87,18 +60,7 @@ namespace TaskManager.API.Services.Implementation
                 return null;
             }
 
-            return new TaskItemReponseDto
-            {
-                Id = existingTask.Id,
-                Title = existingTask.Title,
-                Description = existingTask.Description,
-                IsCompleted = existingTask.IsCompleted,
-                DueDate = existingTask.DueDate,
-                CategoryId = existingTask.CategoryId,
-                CategoryName = existingTask.Category?.Name,
-                PriorityId = existingTask.PriorityId,
-                PriorityName = existingTask.Priority?.Level
-            };
+            return _mapper.Map<TaskItemReponseDto>(existingTask);
         }
 
         public async Task<TaskItemReponseDto> UpdateTaskAsync(int id, UpdateTaskItemDto dto, string userId)
@@ -109,27 +71,12 @@ namespace TaskManager.API.Services.Implementation
                 return null;
             }
 
-            existingTask.Title = dto.Title;
-            existingTask.Description = dto.Description;
-            existingTask.IsCompleted = dto.IsCompleted;
-            existingTask.DueDate = dto.DueDate;
-            existingTask.CategoryId = dto.CategoryId;
-            existingTask.PriorityId = dto.PriorityId;
+            _mapper.Map(dto, existingTask);
 
 
             await _context.SaveChangesAsync();
 
-            return new TaskItemReponseDto
-            {
-                Id = existingTask.Id,
-                Title = existingTask.Title,
-                Description = existingTask.Description,
-                IsCompleted = existingTask.IsCompleted,
-                DueDate = existingTask.DueDate,
-                CategoryId = existingTask.CategoryId,
-                PriorityId = existingTask.PriorityId
-
-            };
+            return _mapper.Map<TaskItemReponseDto>(existingTask);
         }
             
     }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using TaskManager.API.AutoMapperProfile;
 using TaskManager.API.Data;
 using TaskManager.API.Services.Implementation;
 using TaskManager.API.Services.Interfaces;
@@ -27,6 +28,7 @@ builder.Services.AddControllers()
            ReferenceHandler.IgnoreCycles;
     });
 
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddScoped<ITaskItemsService, TaskItemService>();
 
 builder.Services.AddScoped<JwtService>();
