@@ -1,7 +1,6 @@
-﻿namespace TaskManager.API.DTOs
+﻿namespace TaskManager.API.DTOs;
+
+public class UpadateCategoryDto
 {
-    public class UpadateCategoryDto
-    {
-        public string? Name { get; set; }
-    }
+    public string? Name { get; set; }
 }

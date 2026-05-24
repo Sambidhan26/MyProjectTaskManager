@@ -1,7 +1,6 @@
-﻿namespace TaskManager.API.DTOs
+﻿namespace TaskManager.API.DTOs;
+
+public class CreateCommentDto
 {
-    public class CreateCommentDto
-    {
-        public string? Content { get; set; }
-    }
+    public string? Content { get; set; }
 }

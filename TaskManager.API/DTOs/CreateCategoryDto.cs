@@ -1,7 +1,6 @@
-﻿namespace TaskManager.API.DTOs
+﻿namespace TaskManager.API.DTOs;
+
+public class CreateCategoryDto
 {
-    public class CreateCategoryDto
-    {
-        public string? Name { get; set; }
-    }
+    public string? Name { get; set; }
 }

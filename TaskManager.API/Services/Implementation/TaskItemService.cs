@@ -14,6 +14,9 @@ namespace TaskManager.API.Services.Implementation
         {
             var existingTask = _mapper.Map<TaskItem>(dto);
 
+            existingTask.UserId = userId;
+            existingTask.CreatedAt = DateTime.UtcNow;
+
             _context.TaskItems.Add(existingTask);
 
             await _context.SaveChangesAsync();

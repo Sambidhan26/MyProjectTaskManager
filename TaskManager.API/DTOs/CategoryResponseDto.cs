@@ -1,8 +1,7 @@
-﻿namespace TaskManager.API.DTOs
+﻿namespace TaskManager.API.DTOs;
+
+public class CategoryResponseDto
 {
-    public class CategoryResponseDto
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-    }
+    public int Id { get; set; }
+    public string? Name { get; set; }
 }
