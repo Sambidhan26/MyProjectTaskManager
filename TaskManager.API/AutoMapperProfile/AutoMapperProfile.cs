@@ -11,5 +11,12 @@ public class AutoMapperProfile:Profile
         CreateMap<TaskItem, TaskItemReponseDto>();
         CreateMap<CreateTaskItemDto, TaskItem>();
         CreateMap<UpdateTaskItemDto, TaskItem>();
+
+        CreateMap<Category, CategoryResponseDto>();
+        CreateMap<CreateCategoryDto, Category>();
+        CreateMap<UpadateCategoryDto, Category>();
+
+        CreateMap<Comment, CommentResponseDto>();
+        CreateMap<CreateCommentDto, Comment>();
     }
 }

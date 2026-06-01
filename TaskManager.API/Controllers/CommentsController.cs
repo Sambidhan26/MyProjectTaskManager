@@ -1,79 +1,68 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
+using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CommentsController(ApplicationDbContext _context) : ControllerBase
+    public class CommentsController(ICommentService _commentService) : ControllerBase
     {
-        [HttpGet("task/{id:int}")]
-        public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetCommentsByTaskId(int id)
+        [HttpGet("{taskId:int}")]
+        public async Task<ActionResult<CommentResponseDto>> GetCommentsByTaskId(int taskId)
         {
-            var comments = await _context.Comments
-                .Where(c => c.Id == id)
-                .Select(c => new CommentResponseDto
-                {
-                    Id = c.Id,
-                    Content = c.Content,
-                    CreatedAt = c.CreatedAt,
-                    TaskItemId = c.TaskItemId
-                })
-                .ToListAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var comment = await _commentService.GetCommentByIdAsync(taskId, userId!);
 
-            return Ok(comments);
-        }
-
-        [HttpPost("task/{id:int}")]
-        public async Task<ActionResult<CommentResponseDto>> CreateComment(int id, [FromBody] CreateCommentDto dto)
-        {
-            // Check if task exists
-            var taskExists = await _context.TaskItems.AnyAsync(t => t.Id == id);
-
-            if (!taskExists)
+            if (comment == null)
             {
                 return NotFound("Task not found");
             }
 
-            var comment = new Comment
-            {
-                Content = dto.Content,
-                CreatedAt = DateTime.UtcNow,
-                TaskItemId = id
-            };
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            var response = new CommentResponseDto
-            {
-                Id = comment.Id,
-                Content = comment.Content,
-                CreatedAt = comment.CreatedAt,
-                TaskItemId = comment.TaskItemId
-            };
-
-            return Ok(response);
+            return Ok(comment);
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult> DeleteComment(int id)
+        [HttpGet("task/{taskId:int}")]
+        public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetAllComments(int taskId)
         {
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            var comments = await _commentService.GetAllCommentsByTaskAsync(taskId,  userId!);
+            return Ok(comments);
+        }
+
+        [HttpPost("task/{taskId:int}")]
+        public async Task<ActionResult<CommentResponseDto>> CreateComment([FromRoute] int taskId, [FromBody] CreateCommentDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var comment = await _commentService.CreateCommentAsync(taskId,dto, userId!);
             if (comment == null)
             {
-                return NotFound();
+                return NotFound("Task not found");
             }
 
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Comment deleted successfully" });
+            return Ok(comment);
+        }
+
+        [HttpDelete("{taskIdd:int}")]
+        public async Task<ActionResult> DeleteComment(int taskId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var comment = await _commentService.DeleteCommentAsync(taskId, userId!);
+
+            if (!comment)
+            {
+                return NotFound("Comment not found");
+            }
+
+            return NoContent();
         }
     }
 }
