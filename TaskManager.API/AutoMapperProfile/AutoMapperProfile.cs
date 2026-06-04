@@ -18,5 +18,10 @@ public class AutoMapperProfile:Profile
 
         CreateMap<Comment, CommentResponseDto>();
         CreateMap<CreateCommentDto, Comment>();
+
+        CreateMap<Priority, PriorityResponseDto>()
+        .ForMember(dest => dest.TaskItems,
+        opt => opt.MapFrom(src => src.TaskItems));
+        CreateMap<TaskItem, TaskItemPriorityDto>();
     }
 }
