@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using TaskManager.API.AutoMapperProfile;
 using TaskManager.API.Data;
+using TaskManager.API.Middleware;
 using TaskManager.API.Services.Implementation;
 using TaskManager.API.Services.Interfaces;
 using TaskManager.API.Services.Jwt;
@@ -71,6 +72,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 

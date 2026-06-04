@@ -18,7 +18,11 @@ namespace TaskManager.API.Controllers
     public class TaskItemsController(ITaskItemsService _taskService) : ControllerBase
     {
 
-
+        [HttpGet("test-error")]
+        public IActionResult TestError()
+        {
+            throw new Exception("Test error");
+        }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItemReponseDto>>> GetAllTaskItems()
         {
