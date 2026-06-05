@@ -1,10 +1,11 @@
-﻿using TaskManager.API.DTOs;
+﻿using TaskManager.API.Common.Pagination;
+using TaskManager.API.DTOs;
 
 namespace TaskManager.API.Services.Interfaces;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync();
+    Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync(PaginationParams pagination);
     Task<CategoryResponseDto> GetCategoryByIdAsync(int id);
     Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto dto);
     Task<CategoryResponseDto> UpdateCategoryAsync(int id, UpadateCategoryDto dto);

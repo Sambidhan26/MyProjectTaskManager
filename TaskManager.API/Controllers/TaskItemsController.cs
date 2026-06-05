@@ -5,9 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using TaskManager.API.Common;
+using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
+using TaskManager.API.Models.Common;
 using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Controllers
@@ -18,18 +21,24 @@ namespace TaskManager.API.Controllers
     public class TaskItemsController(ITaskItemsService _taskService) : ControllerBase
     {
 
-        [HttpGet("test-error")]
-        public IActionResult TestError()
-        {
-            throw new Exception("Test error");
-        }
+        //[HttpGet("test-error")]
+        //public IActionResult TestError()
+        //{
+        //    throw new Exception("Test error");
+        //}
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItemReponseDto>>> GetAllTaskItems()
+        public async Task<ActionResult> GetAllTaskItems([FromQuery] PaginationParams pagination)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var taskItems = await _taskService.GetAllTasksAsync(userId!);
-            return Ok(taskItems);
+            var taskItems = await _taskService.GetAllTasksAsync(userId!,pagination);
+
+            return Ok(new ApiResponse<IEnumerable<TaskItemReponseDto>>
+            {
+                Success = true,
+                Message = "Task retrieved successfully",
+                Data = taskItems
+            });
 
         }
 
@@ -42,15 +51,23 @@ namespace TaskManager.API.Controllers
 
             if (taskItem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Task not found"
+                });
             }
 
-            return Ok(taskItem);
+            return Ok(new ApiResponse<TaskItemReponseDto>
+            {
+                Success = true,
+                Message = "Task retrieved successfully",
+                Data = taskItem
+            });
         }
 
 
         [HttpPost]
-        public async Task<ActionResult<TaskItem>> CreateTaskItem([FromBody] CreateTaskItemDto dto)
+        public async Task<ActionResult<TaskItemReponseDto>> CreateTaskItem([FromBody] CreateTaskItemDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -58,11 +75,17 @@ namespace TaskManager.API.Controllers
 
             var createdTask = await _taskService.CreateTaskAsync(dto, userId!);
 
-            return CreatedAtAction(nameof(GetTaskItemById),new { id = createdTask.Id },createdTask);
+            return CreatedAtAction(nameof(GetTaskItemById),new { id = createdTask.Id }
+                , new ApiResponse<TaskItemReponseDto>
+                {
+                    Success = true,
+                    Message = "Task created successfully",
+                    Data = createdTask
+                });
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<TaskItem>> UpdateTaskItem(int id, [FromBody] UpdateTaskItemDto dto)
+        public async Task<ActionResult<TaskItemReponseDto>> UpdateTaskItem(int id, [FromBody] UpdateTaskItemDto dto)
         {
             var useId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -70,11 +93,19 @@ namespace TaskManager.API.Controllers
 
             if(updateTask == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Task not found"
+                });
             }
 
 
-            return Ok(updateTask);
+            return Ok(new ApiResponse<TaskItemReponseDto>
+            {
+                Success = true,
+                Message = "Task updated successfully",
+                Data = updateTask
+            });
         }
 
         [HttpDelete("{id:int}")]
@@ -84,11 +115,19 @@ namespace TaskManager.API.Controllers
 
             if (!taskItem)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Task not found"
+                });
             }
 
 
-            return NoContent();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Task deleted successfully",
+                Data = null
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using TaskManager.API.DTOs;
+﻿using TaskManager.API.Common.Pagination;
+using TaskManager.API.DTOs;
 
 namespace TaskManager.API.Services.Interfaces;
 

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
@@ -40,9 +41,12 @@ namespace TaskManager.API.Services.Implementation
             return true;
         }
 
-        public async Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync()
+        public async Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync(PaginationParams pagination)
         {
-            var existingCategory = await _context.Categories.ToListAsync();
+            var existingCategory = await _context.Categories
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<CategoryResponseDto>>(existingCategory);
 

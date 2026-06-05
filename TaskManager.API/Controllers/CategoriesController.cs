@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Common;
+using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
+using TaskManager.API.Models.Common;
 using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Controllers
@@ -13,11 +16,16 @@ namespace TaskManager.API.Controllers
     public class CategoriesController(ICategoryService _categoryService) : Controller
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetAllCategories()
+        public async Task<ActionResult> GetAllCategories([FromQuery] PaginationParams pagination)
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
+            var categories = await _categoryService.GetAllCategoriesAsync(pagination);
 
-            return Ok(categories);
+            return Ok(new ApiResponse<IEnumerable<CategoryResponseDto>>
+            {
+                Success = true,
+                Message = "Categories retrieved successfully",
+                Data = categories
+            });
         }
 
         [HttpGet("{id:int}")]
@@ -27,14 +35,25 @@ namespace TaskManager.API.Controllers
             if (category == null)
                 return NotFound();
 
-            return Ok(category);
+            return Ok(new ApiResponse<CategoryResponseDto>
+            {
+                Success = true,
+                Message = "Category retrieved successfully",
+                Data = category
+            });
         }
 
         [HttpPost]
         public async Task<ActionResult<CategoryResponseDto>> CreateCategory([FromBody] CreateCategoryDto dto)
         {
             var category = await _categoryService.CreateCategoryAsync(dto);
-            return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, category);
+            return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, 
+                new ApiResponse<CategoryResponseDto>
+                {
+                    Success = true,
+                    Message = "Category created successfully",
+                    Data = category
+                });
         }
 
         [HttpPut("{id:int}")]
@@ -44,11 +63,19 @@ namespace TaskManager.API.Controllers
 
             if (existingCategory == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Category not found"
+                });
             }
 
 
-            return Ok(existingCategory);
+            return Ok(new ApiResponse<CategoryResponseDto>
+            {
+                Success = true,
+                Message = "Category updated successfully",
+                Data = existingCategory
+            });
         }
 
         [HttpDelete("{id:int}")]
@@ -58,10 +85,18 @@ namespace TaskManager.API.Controllers
 
             if (!existingCategory)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Category not found"
+                });
             }
 
-            return NoContent();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Category deleted successfully",
+                Data = null
+            });
         }
     }
 }

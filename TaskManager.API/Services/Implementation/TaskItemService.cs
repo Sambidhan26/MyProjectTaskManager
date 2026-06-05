@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
@@ -40,10 +41,12 @@ namespace TaskManager.API.Services.Implementation
             return await Task.FromResult(true);
         }
 
-        public async Task<IEnumerable<TaskItemReponseDto>> GetAllTasksAsync(string userId)
+        public async Task<IEnumerable<TaskItemReponseDto>> GetAllTasksAsync(string userId, PaginationParams pagination)
         {
             var existingTask = await _context.TaskItems
                 .Where(t => t.UserId == userId)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<TaskItemReponseDto>>(existingTask);

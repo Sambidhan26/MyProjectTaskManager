@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using TaskManager.API.Common;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
+using TaskManager.API.Models.Common;
 using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Controllers
@@ -21,10 +23,18 @@ namespace TaskManager.API.Controllers
 
             if (comment == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Comment not found"
+                });
             }
 
-            return Ok(comment);
+            return Ok(new ApiResponse<CommentResponseDto>
+            {
+                Success = true,
+                Message = "Comment retrieved successfully",
+                Data = comment
+            });
         }
 
         [HttpGet("task/{taskId:int}")]
@@ -33,7 +43,12 @@ namespace TaskManager.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var comments = await _commentService.GetAllCommentsByTaskAsync(taskId,  userId!);
-            return Ok(comments);
+            return Ok(new ApiResponse<IEnumerable<CommentResponseDto>>
+            {
+                Success = true,
+                Message = "Comments retrieved successfully",
+                Data = comments
+            });
         }
 
         [HttpPost("task/{taskId:int}")]
@@ -44,11 +59,19 @@ namespace TaskManager.API.Controllers
             var comment = await _commentService.CreateCommentAsync(taskId,dto, userId!);
             if (comment == null)
             {
-                return NotFound("Task not found");
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Comment not found"
+                });
             }
 
 
-            return Ok(comment);
+            return Ok(new ApiResponse<CommentResponseDto>
+            {
+                Success = true,
+                Message = "Comment created successfully",
+                Data = comment
+            });
         }
 
         [HttpDelete("{taskIdd:int}")]
@@ -62,7 +85,12 @@ namespace TaskManager.API.Controllers
                 return NotFound("Comment not found");
             }
 
-            return NoContent();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Comment deleted successfully",
+                Data = null
+            });
         }
     }
 }

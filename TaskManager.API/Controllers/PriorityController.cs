@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TaskManager.API.Common;
 using TaskManager.API.DTOs;
 using TaskManager.API.Services.Interfaces;
 
@@ -12,7 +13,12 @@ namespace TaskManager.API.Controllers
         public async Task<ActionResult<IEnumerable<PriorityResponseDto>>> GetAllPriorities()
         {
             var priorities = await _priorityService.GetAllPrioritiesAsync();
-            return Ok(priorities);
+            return Ok(new ApiResponse<IEnumerable<PriorityResponseDto>>
+            {
+                Success = true,
+                Message = "Priorities retrieved successfully",
+                Data = priorities
+            });
         }
 
         [HttpGet("{priorityId:int}")]
@@ -23,7 +29,12 @@ namespace TaskManager.API.Controllers
             {
                 return NotFound("Priority not found");
             }
-            return Ok(priority);
+            return Ok(new ApiResponse<PriorityResponseDto>
+            {
+                Success = true,
+                Message = "Priority retrieved successfully",
+                Data = priority
+            });
         }
     }
 }

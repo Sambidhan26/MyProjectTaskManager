@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
 using TaskManager.API.Models;
@@ -56,7 +57,9 @@ namespace TaskManager.API.Services.Implementation
                 return Enumerable.Empty<CommentResponseDto>();
             }
 
-            var comment = await _context.Comments.Where(c => c.TaskItemId == taskId).ToListAsync();
+            var comment = await _context.Comments
+                .Where(c => c.TaskItemId == taskId)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<CommentResponseDto>>(comment);
         }
