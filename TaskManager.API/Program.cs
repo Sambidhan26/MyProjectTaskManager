@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -11,6 +13,7 @@ using TaskManager.API.Middleware;
 using TaskManager.API.Services.Implementation;
 using TaskManager.API.Services.Interfaces;
 using TaskManager.API.Services.Jwt;
+using TaskManager.API.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,11 @@ builder.Services.AddScoped<ITaskItemsService, TaskItemService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPriorityService, PriorityService>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskItemDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddScoped<JwtService>();
 
