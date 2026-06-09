@@ -52,5 +52,18 @@ namespace TaskManager.API.Controllers
                 Data = stats
             });
         }
+
+        [HttpGet("breakdown")]
+        public async Task<ActionResult<IEnumerable<PriorityBreakDownDto>>> GetPriorityBreakDown()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var breakdown = await _priorityService.GetPriorityBreakDownAsync(userId!);
+            return Ok(new ApiResponse<IEnumerable<PriorityBreakDownDto>>
+            {
+                Success = true,
+                Message = "Priority breakdown retrieved successfully",
+                Data = breakdown
+            });
+        }
     }
 }

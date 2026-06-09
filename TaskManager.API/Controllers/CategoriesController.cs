@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TaskManager.API.Common;
 using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Models;
 using TaskManager.API.Models.Common;
 using TaskManager.API.Services.Interfaces;
@@ -40,6 +42,31 @@ namespace TaskManager.API.Controllers
                 Success = true,
                 Message = "Category retrieved successfully",
                 Data = category
+            });
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<IEnumerable<CategoryStatsBreakdown>>> GetCategoryStatsBreakdown([FromQuery] string userId)
+        {
+            var breakdown = await _categoryService.GetCategoryStatsBreakdownAsync(userId);
+            return Ok(new ApiResponse<IEnumerable<CategoryStatsBreakdown>>
+            {
+                Success = true,
+                Message = "Category stats breakdown retrieved successfully",
+                Data = breakdown
+            });
+        }
+
+        [HttpGet("breakdown")]
+        public async Task<ActionResult<IEnumerable<CategoryStatsBreakdown>>> GetCategoryBreakdown()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var breakdown = await _categoryService.GetCategoryStatsBreakdownAsync(userId!);
+            return Ok(new ApiResponse<IEnumerable<CategoryStatsBreakdown>>
+            {
+                Success = true,
+                Message = "Category breakdown retrieved successfully",
+                Data = breakdown
             });
         }
 

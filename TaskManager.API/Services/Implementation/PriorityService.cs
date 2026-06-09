@@ -41,5 +41,20 @@ namespace TaskManager.API.Services.Implementation
                 Low = await tasks.CountAsync(t => t.Priority!.Level == "Low")
             };
         }
+
+        public async Task<IEnumerable<PriorityBreakDownDto>> GetPriorityBreakDownAsync(string userId)
+        {
+            var breakdown = await _context.TaskItems
+                .Where(t => t.UserId == userId)
+                .Include(t => t.Priority)
+                .GroupBy(t => t.Priority!.Level)
+                .Select(g => new PriorityBreakDownDto
+                {
+                    PriorityName = g.Key!,
+                    TaskCount = g.Count()
+                }).ToListAsync();
+
+            return breakdown;
+        }
     }
 }

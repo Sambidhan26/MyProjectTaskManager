@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Models;
 using TaskManager.API.Services.Interfaces;
 
@@ -57,6 +59,21 @@ namespace TaskManager.API.Services.Implementation
         {
             var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
             return _mapper.Map<CategoryResponseDto>(existingCategory);
+        }
+
+        public async Task<IEnumerable<CategoryStatsBreakdown>> GetCategoryStatsBreakdownAsync(string userId)
+        {
+            var breakdown = await _context.TaskItems
+                .Where(t => t.UserId == userId)
+                .Include(t => t.Category)
+                .GroupBy(t => t.Category!.Name)
+                .Select(g => new CategoryStatsBreakdown
+                {
+                    CategoryName = g.Key!,
+                    TaskCount = g.Count()
+                }).ToListAsync();
+
+            return breakdown;
         }
 
         public async Task<CategoryResponseDto> UpdateCategoryAsync(int id, UpadateCategoryDto dto)
