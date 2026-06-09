@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TaskManager.API.Common;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Services.Interfaces;
 
 namespace TaskManager.API.Controllers
@@ -12,7 +14,8 @@ namespace TaskManager.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PriorityResponseDto>>> GetAllPriorities()
         {
-            var priorities = await _priorityService.GetAllPrioritiesAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var priorities = await _priorityService.GetAllPrioritiesAsync(userId!);
             return Ok(new ApiResponse<IEnumerable<PriorityResponseDto>>
             {
                 Success = true,
@@ -34,6 +37,19 @@ namespace TaskManager.API.Controllers
                 Success = true,
                 Message = "Priority retrieved successfully",
                 Data = priority
+            });
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<PriorityStatsDto>> GetPriorityStats()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stats = await _priorityService.GetPriorityStatsAsync(userId!);
+            return Ok(new ApiResponse<PriorityStatsDto>
+            {
+                Success = true,
+                Message = "Priority stats retrieved successfully",
+                Data = stats
             });
         }
     }

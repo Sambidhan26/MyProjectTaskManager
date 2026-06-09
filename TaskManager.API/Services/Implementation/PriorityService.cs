@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Models;
 using TaskManager.API.Services.Interfaces;
 
@@ -9,7 +10,7 @@ namespace TaskManager.API.Services.Implementation
 {
     public class PriorityService(ApplicationDbContext _context, IMapper _mapper):IPriorityService
     {
-        public async Task<IEnumerable<PriorityResponseDto>> GetAllPrioritiesAsync()
+        public async Task<IEnumerable<PriorityResponseDto>> GetAllPrioritiesAsync(string userId)
         {
             var priorities = await _context.Priorities
                 .Include(p => p.TaskItems)
@@ -27,6 +28,18 @@ namespace TaskManager.API.Services.Implementation
                 return null;
             }
             return _mapper.Map<PriorityResponseDto>(priority);
+        }
+
+        public async Task<PriorityStatsDto> GetPriorityStatsAsync(string userId)
+        {
+            var tasks = _context.TaskItems.Where(t => t.UserId == userId);
+
+            return new PriorityStatsDto
+            {
+                High = await tasks.CountAsync(t => t.Priority!.Level == "High"),
+                Medium = await tasks.CountAsync(t => t.Priority!.Level == "Medium"),
+                Low = await tasks.CountAsync(t => t.Priority!.Level == "Low")
+            };
         }
     }
 }

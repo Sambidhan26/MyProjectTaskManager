@@ -9,6 +9,7 @@ using TaskManager.API.Common;
 using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Models;
 using TaskManager.API.Models.Common;
 using TaskManager.API.Services.Interfaces;
@@ -27,11 +28,11 @@ namespace TaskManager.API.Controllers
         //    throw new Exception("Test error");
         //}
         [HttpGet]
-        public async Task<ActionResult> GetAllTaskItems([FromQuery] PaginationParams pagination)
+        public async Task<ActionResult> GetAllTaskItems([FromQuery] TaskFilterParams filter)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var taskItems = await _taskService.GetAllTasksAsync(userId!,pagination);
+            var taskItems = await _taskService.GetAllTasksAsync(userId!, filter);
 
             return Ok(new ApiResponse<IEnumerable<TaskItemReponseDto>>
             {
@@ -62,6 +63,19 @@ namespace TaskManager.API.Controllers
                 Success = true,
                 Message = "Task retrieved successfully",
                 Data = taskItem
+            });
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<TaskStatsDto>> GetTaskStats()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stats = await _taskService.GetTaskStatsAsync(userId!);
+            return Ok(new ApiResponse<TaskStatsDto>
+            {
+                Success = true,
+                Message = "Task stats retrieved successfully",
+                Data = stats
             });
         }
 

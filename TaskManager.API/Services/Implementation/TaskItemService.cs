@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Common;
 using TaskManager.API.Common.Pagination;
 using TaskManager.API.Data;
 using TaskManager.API.DTOs;
+using TaskManager.API.DTOs.StatsDto;
 using TaskManager.API.Models;
 using TaskManager.API.Services.Interfaces;
 
@@ -41,12 +43,59 @@ namespace TaskManager.API.Services.Implementation
             return await Task.FromResult(true);
         }
 
-        public async Task<IEnumerable<TaskItemReponseDto>> GetAllTasksAsync(string userId, PaginationParams pagination)
+        public async Task<IEnumerable<TaskItemReponseDto>> GetAllTasksAsync(string userId, TaskFilterParams filter)
         {
-            var existingTask = await _context.TaskItems
+            var query = _context.TaskItems
                 .Where(t => t.UserId == userId)
-                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-                .Take(pagination.PageSize)
+                .AsQueryable();
+
+            if (filter.IsCompleted.HasValue)
+            {
+                query = query.Where(t => t.IsCompleted == filter.IsCompleted.Value);
+            }
+            if (filter.CategoryId.HasValue)
+            {
+                query = query.Where(t => t.CategoryId == filter.CategoryId.Value);
+            }
+            if (filter.PriorityId.HasValue)
+            {
+                query = query.Where(t => t.PriorityId == filter.PriorityId.Value);
+            }
+
+            if(!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var search = filter.Search.ToLower();
+
+                query = query.Where(t =>
+                    (t.Title != null && t.Title.ToLower().Contains(search)) ||
+                    (t.Description != null && t.Description.ToLower().Contains(search)));
+            }
+
+            if(!string.IsNullOrEmpty(filter.SortBy))
+            {
+                query = filter.SortBy.ToLower() switch
+                {
+                    "title" => filter.Descending
+                        ? query.OrderByDescending(t => t.Title)
+                        : query.OrderBy(t => t.Title),
+
+                    "createdat" => filter.Descending
+                        ? query.OrderByDescending(t => t.CreatedAt)
+                        : query.OrderBy(t => t.CreatedAt),
+
+                    "duedate" => filter.Descending
+                        ? query.OrderByDescending(t => t.DueDate)
+                        : query.OrderBy(t => t.DueDate),
+
+                    _ => query.OrderByDescending(t => t.CreatedAt)
+                };
+            }
+
+            query = query.OrderByDescending(t => t.CreatedAt);
+
+            var existingTask = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<TaskItemReponseDto>>(existingTask);
@@ -84,6 +133,21 @@ namespace TaskManager.API.Services.Implementation
 
             return _mapper.Map<TaskItemReponseDto>(existingTask);
         }
-            
+
+        //Stats
+        public async Task<TaskStatsDto> GetTaskStatsAsync(string userId)
+        {
+            var totalTasks = await _context.TaskItems.CountAsync(t => t.UserId == userId);
+            var completedTasks = await _context.TaskItems.CountAsync(t => t.UserId == userId && t.IsCompleted);
+            var pendingTasks = totalTasks - completedTasks;
+
+            return new TaskStatsDto
+            {
+                TotalTasks = totalTasks,
+                CompletedTasks = completedTasks,
+                PendingTasks = pendingTasks
+            };
+        }
+
     }
 }
